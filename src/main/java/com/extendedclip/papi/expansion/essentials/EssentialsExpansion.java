@@ -33,6 +33,7 @@ import net.essentialsx.api.v2.services.BalanceTop;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
@@ -59,6 +60,7 @@ public class EssentialsExpansion extends PlaceholderExpansion {
 
     private Essentials essentials;
     private BalanceTop baltop;
+    private BukkitTask baltopTask;
 
     private final String VERSION = getClass().getPackage().getImplementationVersion();
 
@@ -78,7 +80,17 @@ public class EssentialsExpansion extends PlaceholderExpansion {
         essentials = (Essentials) Bukkit.getPluginManager().getPlugin("Essentials");
         if (essentials != null && essentials.isEnabled()) {
             baltop = essentials.getBalanceTop();
-            baltop.calculateBalanceTopMapAsync();
+
+            if (baltopTask != null) {
+                baltopTask.cancel();
+            }
+
+            baltopTask = Bukkit.getScheduler().runTaskTimerAsynchronously(essentials, () -> {
+                if (baltop != null) {
+                    baltop.calculateBalanceTopMapAsync();
+                }
+            }, 0, 2400L);
+
             return super.register();
         }
         return false;
